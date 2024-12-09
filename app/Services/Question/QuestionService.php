@@ -205,14 +205,31 @@ class QuestionService implements QuestionServiceContract
           $data['query'] = $queryHtml;
           $data['code'] = $code;
           $data['alternatives'] = $alternatives;
-          $data['alternative_a'] = $alternatives[0];
-          $data['alternative_b'] = $alternatives[1];
-          $data['alternative_c'] = $alternatives[2];
-          $data['alternative_d'] = $alternatives[3];
+
+          if (isset($alternatives[0]))
+          {
+               $data['alternative_a'] = $alternatives[0];
+          }
+
+          if (isset($alternatives[1]))
+          {
+               $data['alternative_b'] = $alternatives[1];
+          }
+
+          if (isset($alternatives[2]))
+          {
+               $data['alternative_c'] = $alternatives[2];
+          }
+
+          if (isset($alternatives[3]))
+          {
+               $data['alternative_d'] = $alternatives[3];
+          }
 
           if (isset($alternatives[4])) {
                $data['alternative_e'] = $alternatives[4];
           }
+          
           unset($data['alternatives']);
 
           $data['difficulty'] = $this->getDificultyByScriptTag($data['difficulty']);
