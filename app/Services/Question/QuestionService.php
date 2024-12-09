@@ -159,6 +159,15 @@ class QuestionService implements QuestionServiceContract
                $alternatives[$altIndex] = $alternative;
           }
 
+          if (!isset($data['content']))
+               $data['content'] = null;
+
+          if (!isset($data['topic']))
+               $data['topic'] = null;
+
+          if (!isset($data['subtopic']))
+               $data['subtopic'] = null;
+
           //Get id or create others models needed to create a question
           $arrayWithIds = $this->getModelsIdOrcreateNonExistentEntities([
                Matter::class => $data['matter'],
