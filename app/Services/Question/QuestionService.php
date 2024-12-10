@@ -481,13 +481,17 @@ class QuestionService implements QuestionServiceContract
                });
             
                 // Retornar a coleção paginada
-               return new \Illuminate\Pagination\LengthAwarePaginator(
+               $questions = new \Illuminate\Pagination\LengthAwarePaginator(
                     $modifiedCollection,
                     $paginatedResults->total(),
                     $paginatedResults->perPage(),
                     $paginatedResults->currentPage(),
                     ['path' => $paginatedResults->path()]
                );
+
+               $questions['total_questions'] = $paginatedResults->total();
+
+               return $questions;
 
           } catch (Exception $ex) {
                Log::error("Un erro occurred when tryning execute a query! - err: {$ex->getMessage()}");
