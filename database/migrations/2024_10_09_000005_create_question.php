@@ -25,7 +25,7 @@ return new class extends Migration
 
         Schema::create('questions', function (Blueprint $table) {
             $table->id();
-            $table->string('original_code', 50)->nullable()->unique();
+            $table->string('original_code', 50)->nullable();
             $table->string('code', 50)->unique()->nullable(false);
             $table->longText('query')->nullable(false);
             $table->text('alternative_a')->nullable(true);
