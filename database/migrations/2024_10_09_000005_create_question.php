@@ -19,7 +19,7 @@ return new class extends Migration
 
         Schema::create('institutions', function (Blueprint $table) {
             $table->id();
-            $table->string('name', 30)->unique()->nullable(false);
+            $table->string('name')->unique()->nullable(false);
             $table->timestamps();
         });
 
