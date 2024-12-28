@@ -54,7 +54,7 @@ class QuestionService implements QuestionServiceContract
                     throw QuestionInventoryException::isNotFile();
                }
 
-               $imageName = $this->saveQuestionImage($data['imageFile'], $code);
+               $imageName = $this->saveQuestionImage($data['imageFile'], $code, 'png');
           }
 
           $arrayWithQuestionForSave = array_merge($data, [
@@ -122,11 +122,18 @@ class QuestionService implements QuestionServiceContract
           $alternatives = $data['alternatives'][0]['array_full_perguntas'];
 
           preg_match_all('/src="([^"]+)"/', $queryHtml, $matches);
+          $baseUrl = 'http://127.0.0.1:8000/api';
 
           //Here we save the original path and the new filename in a dictionary to replace after
           $QuerySrcDictionary = [];
           foreach ($matches[0] as $index => $fullMatch) {
                $cleanUrl = htmlspecialchars_decode($matches[1][$index]);
+
+               // Verifica se a URL é relativa (não contém protocolo)
+               if (!preg_match('/^(https?:\/\/|www\.)/i', $cleanUrl)) {
+                    $cleanUrl = rtrim($baseUrl, '/') . '/' . ltrim($cleanUrl, '/'); // Torna a URL absoluta
+               }
+
                $QuerySrcDictionary["occurrence_{$index}"] = [
                     'original' => $fullMatch,
                     'fileName' => $this->downloadAndSaveImagesReturningFileName($cleanUrl, $code)
@@ -145,6 +152,11 @@ class QuestionService implements QuestionServiceContract
 
                     foreach ($altMatches[0] as $index => $fullcontent) {
                          $cleanUrl = htmlspecialchars_decode($altMatches[1][$index]);
+
+                         if (!preg_match('/^(https?:\/\/|www\.)/i', $cleanUrl)) {
+                              $cleanUrl = rtrim($baseUrl, '/') . '/' . ltrim($cleanUrl, '/');
+                         }
+
                          $alternativesSrcDictionary["occurrence_{$index}"] = [
                               'original' => $fullcontent,
                               'fileName' => $this->downloadAndSaveImagesReturningFileName($cleanUrl, $code)
@@ -206,30 +218,26 @@ class QuestionService implements QuestionServiceContract
           $data['code'] = $code;
           $data['alternatives'] = $alternatives;
 
-          if (isset($alternatives[0]))
-          {
+          if (isset($alternatives[0])) {
                $data['alternative_a'] = $alternatives[0];
           }
 
-          if (isset($alternatives[1]))
-          {
+          if (isset($alternatives[1])) {
                $data['alternative_b'] = $alternatives[1];
           }
 
-          if (isset($alternatives[2]))
-          {
+          if (isset($alternatives[2])) {
                $data['alternative_c'] = $alternatives[2];
           }
 
-          if (isset($alternatives[3]))
-          {
+          if (isset($alternatives[3])) {
                $data['alternative_d'] = $alternatives[3];
           }
 
           if (isset($alternatives[4])) {
                $data['alternative_e'] = $alternatives[4];
           }
-          
+
           unset($data['alternatives']);
 
           $data['difficulty'] = $this->getDificultyByScriptTag($data['difficulty']);
@@ -254,15 +262,36 @@ class QuestionService implements QuestionServiceContract
           }
 
           $originalName = basename($linkForDownload);
-          $tempPath = "{$tempDirectory}/{$questionCode}_{$originalName}";
+          $safeName = $this->sanitizeFileName("{$questionCode}_{$originalName}");
+          $tempPath = "{$tempDirectory}/{$safeName}";
 
           file_put_contents($tempPath, $response->body());
           chmod($tempPath, 0666);
 
+          // Validar se o arquivo é um SVG
+          if (mime_content_type($tempPath) !== 'image/svg+xml' && mime_content_type($tempPath) !== 'image/png') {
+               Log::error("O arquivo baixado não é válido.");
+          }
+
+          $type = '';
+          if (mime_content_type($tempPath) === 'image/svg+xml') {
+               $type = 'svg';
+          }
+
+          if (mime_content_type($tempPath) === 'image/png') {
+               $type = 'png';
+          }
+
           $uploadedFile = new UploadedFile($tempPath, $originalName, null, null, true);
-          $newFileName = $this->saveQuestionImage($uploadedFile, $questionCode);
-          
+          $newFileName = $this->saveQuestionImage($uploadedFile, $questionCode, $type);
+
           return $newFileName;
+     }
+
+     protected function sanitizeFileName(string $fileName): string
+     {
+          // Remove caracteres inválidos para nomes de arquivos
+          return preg_replace('/[^A-Za-z0-9_\-\.]/', '_', $fileName);
      }
 
      private function getDificultyByScriptTag(string $scriptTag)
@@ -343,50 +372,41 @@ class QuestionService implements QuestionServiceContract
       */
      public function update(array $data, int $questionId): void
      {
-          try
-          {
-               if (isset($data['matter_id']))
-               {
+          try {
+               if (isset($data['matter_id'])) {
                     Matter::where('id', $data['matter_id'])->firstOrFail();
                }
 
-               if (isset($data['content_id']))
-               {
+               if (isset($data['content_id'])) {
                     Content::where('id', $data['content_id'])->firstOrFail();
                }
 
-               if (isset($data['topic_id']))
-               {
+               if (isset($data['topic_id'])) {
                     Topic::where('id', $data['topic_id'])->firstOrFail();
                }
 
-               if (isset($data['subtopic_id']))
-               {
+               if (isset($data['subtopic_id'])) {
                     Subtopic::where('id', $data['subtopic_id'])->firstOrFail();
                }
 
-               if (isset($data['institution_id']))
-               {
+               if (isset($data['institution_id'])) {
                     Institution::where('id', $data['institution_id'])->firstOrFail();
                }
 
-               if (isset($data['year_id']))
-               {
+               if (isset($data['year_id'])) {
                     Year::where('id', $data['year_id'])->firstOrFail();
                }
 
                $question = $this->getById($questionId);
-     
+
                $question->fill($data);
-     
+
                if ($question->isDirty()) {
                     $question->save();
                } else {
                     throw new QuestionInventoryException("No changes detected for update");
                }
-          }
-          catch (ModelNotFoundException $ex)
-          {
+          } catch (ModelNotFoundException $ex) {
                throw QuestionInventoryException::notFound("", $ex->getMessage());
           }
      }
@@ -461,26 +481,26 @@ class QuestionService implements QuestionServiceContract
 
                $modifiedCollection = collect($paginatedResults->items())->map(function ($question) {
                     $fieldsToModify = ['query', 'alternative_a', 'alternative_b', 'alternative_c', 'alternative_d', 'alternative_e'];
-            
+
                     foreach ($fieldsToModify as $field) {
                          if (!empty($question->{$field})) {
                               $awsUrlPath = $this->aws_url_path;
                               $awsImagesQuestionFolder = $this->aws_images_question_folder;
-                     
+
                               $question->{$field} = preg_replace_callback(
                                    '/src=["\']([^"\']+)["\']/',
                                    function ($matches) use ($awsUrlPath, $awsImagesQuestionFolder) {
-                                     return 'src="' . $awsUrlPath . '/' . $awsImagesQuestionFolder . '/' . ltrim($matches[1], '/') . '"';
+                                        return 'src="' . $awsUrlPath . '/' . $awsImagesQuestionFolder . '/' . ltrim($matches[1], '/') . '"';
                                    },
                                    $question->{$field}
                               );
                          }
                     }
-            
+
                     return $question;
                });
-            
-                // Retornar a coleção paginada
+
+               // Retornar a coleção paginada
                $questions = new \Illuminate\Pagination\LengthAwarePaginator(
                     $modifiedCollection,
                     $paginatedResults->total(),
@@ -492,7 +512,6 @@ class QuestionService implements QuestionServiceContract
                $questions['total_questions'] = $paginatedResults->total();
 
                return $questions;
-
           } catch (Exception $ex) {
                Log::error("Un erro occurred when tryning execute a query! - err: {$ex->getMessage()}");
                throw QuestionInventoryException::QueryError();
@@ -502,28 +521,31 @@ class QuestionService implements QuestionServiceContract
      /**
       * @throws QuestionInventoryException
       */
-     protected function saveQuestionImage(UploadedFile $file, string $questionCode): string
+     protected function saveQuestionImage(UploadedFile $file, string $questionCode, string $type): string
      {
           $newFileName = $this->generateNewNamefile($file, $questionCode);
           $filePath = "{$this->aws_images_question_folder}/{$newFileName}";
 
-          try 
-          {
+          try {
                $stream = fopen($file->getRealPath(), 'r+');
 
-               Storage::disk('s3')->put($filePath, $stream, [
-                    'visibility' => 'public',
-                    'ContentType' => 'image/png',
-               ]);
+               if ($type === 'png') {
+                    Storage::disk('s3')->put($filePath, $stream, [
+                         'visibility' => 'public',
+                         'ContentType' => 'image/png',
+                    ]);
+               }
+               if ($type === 'svg') {
+                    Storage::disk('s3')->put($filePath, $stream, [
+                         'visibility' => 'public',
+                         'ContentType' => 'image/svg+xml',
+                    ]);
+               }
 
                return $newFileName;
-          } 
-          catch (QuestionInventoryException $ex) 
-          {
+          } catch (QuestionInventoryException $ex) {
                throw $ex;
-          } 
-          catch (Exception $ex) 
-          {
+          } catch (Exception $ex) {
                Log::error("Un erro occurred when tryning save file in folder! - err: {$ex->getMessage()}");
                throw new Exception($ex);
           }
@@ -532,6 +554,7 @@ class QuestionService implements QuestionServiceContract
      private function generateNewNamefile(UploadedFile $file, string $questionCode): string
      {
           $extension = $file->getClientOriginalExtension();
+
           $randomName = Str::random(20) . '.' . $extension;
           return $questionCode . $randomName;
      }
