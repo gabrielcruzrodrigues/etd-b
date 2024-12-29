@@ -268,7 +268,6 @@ class QuestionService implements QuestionServiceContract
           file_put_contents($tempPath, $response->body());
           chmod($tempPath, 0666);
 
-          // Validar se o arquivo é um SVG
           if (mime_content_type($tempPath) !== 'image/svg+xml' && mime_content_type($tempPath) !== 'image/png') {
                Log::error("O arquivo baixado não é válido.");
           }
@@ -281,6 +280,7 @@ class QuestionService implements QuestionServiceContract
           if (mime_content_type($tempPath) === 'image/png') {
                $type = 'png';
           }
+          // Validar se o arquivo é um SVG
 
           $uploadedFile = new UploadedFile($tempPath, $originalName, null, null, true);
           $newFileName = $this->saveQuestionImage($uploadedFile, $questionCode, $type);
@@ -490,7 +490,9 @@ class QuestionService implements QuestionServiceContract
                               $question->{$field} = preg_replace_callback(
                                    '/src=["\']([^"\']+)["\']/',
                                    function ($matches) use ($awsUrlPath, $awsImagesQuestionFolder) {
-                                        return 'src="' . $awsUrlPath . '/' . $awsImagesQuestionFolder . '/' . ltrim($matches[1], '/') . '"';
+                                        // Aplique urlencode para garantir a codificação correta dos caracteres especiais
+                                        $encodedFileName = urlencode(ltrim($matches[1], '/'));
+                                        return 'src="' . $awsUrlPath . '/' . $awsImagesQuestionFolder . '/' . $encodedFileName . '"';
                                    },
                                    $question->{$field}
                               );
