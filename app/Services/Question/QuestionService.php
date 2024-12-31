@@ -321,12 +321,12 @@ class QuestionService implements QuestionServiceContract
 
                          $verify = null;
                          if ($content !== null) {
-                              foreach ($content as $value) {
-                                   if ($value->matter_id === $ids['Matter']) {
+                              foreach ($content as $cont) {
+                                   if ($cont->matter_id === $ids['Matter']) {
                                         $verify = [
                                              'exist' => true,
-                                             'content_id' => $value->id,
-                                             'name' => $value->name
+                                             'content_id' => $cont->id,
+                                             'name' => $cont->name
                                         ];
                                    }
                               }
@@ -335,7 +335,7 @@ class QuestionService implements QuestionServiceContract
                          if (isset($verify['exist'])) {
                               $ids[class_basename($modelClass)] = $verify['content_id'];
                          } else {
-                              $contentForCreate = ['name' => $verify['name'], 'matter_id' => $ids['Matter']];
+                              $contentForCreate = ['name' => $value, 'matter_id' => $ids['Matter']];
                               $contentCreated = $modelClass::create($contentForCreate);
                               $ids[class_basename($modelClass)] = $contentCreated->id;
                          }
@@ -346,12 +346,12 @@ class QuestionService implements QuestionServiceContract
 
                          $verify = null;
                          if ($topic !== null) {
-                              foreach ($topic as $value) {
-                                   if ($value->content_id === $ids['Content']) {
+                              foreach ($topic as $top) {
+                                   if ($top->content_id === $ids['Content']) {
                                         $verify = [
                                              'exist' => true,
-                                             'topic_id' => $value->id,
-                                             'name' => $value->name
+                                             'topic_id' => $top->id,
+                                             'name' => $top->name
                                         ];
                                    }
                               }
@@ -360,7 +360,7 @@ class QuestionService implements QuestionServiceContract
                          if (isset($verify['exist'])) {
                               $ids[class_basename($modelClass)] = $verify['topic_id'];
                          } else {
-                              $topicForCreate = ['name' => $verify['name'], 'content_id' => $ids['Content']];
+                              $topicForCreate = ['name' => $value, 'content_id' => $ids['Content']];
                               $topicCreated = $modelClass::create($topicForCreate);
                               $ids[class_basename($modelClass)] = $topicCreated->id;
                          }
@@ -371,15 +371,12 @@ class QuestionService implements QuestionServiceContract
 
                          $verify = null;
                          if ($subtopic !== null) {
-                              foreach ($subtopic as $value) {
-                                   log::info('$subtopic value : ' . $value->name); 
-                                   log::info('value topic_id : ' . $value->topic_id);
-
-                                   if ($value->topic_id === $ids['Topic']) {
+                              foreach ($subtopic as $sub) {
+                                   if ($sub->topic_id === $ids['Topic']) {
                                         $verify = [
                                              'exist' => true,
-                                             'subtopic_id' => $value->id,
-                                             'name' => $value->name
+                                             'subtopic_id' => $sub->id,
+                                             'name' => $sub->name
                                         ];
                                    }
                               }
@@ -388,7 +385,7 @@ class QuestionService implements QuestionServiceContract
                          if (isset($verify['exist'])) {
                               $ids[class_basename($modelClass)] = $verify['subtopic_id'];
                          } else {
-                              $subtopicForCreate = ['name' => $verify['name'], 'topic_id' => $ids['Topic']];
+                              $subtopicForCreate = ['name' => $value, 'topic_id' => $ids['Topic']];
                               $subtopicCreated = $modelClass::create($subtopicForCreate);
                               $ids[class_basename($modelClass)] = $subtopicCreated->id;
                          }
