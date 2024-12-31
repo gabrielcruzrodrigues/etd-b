@@ -314,24 +314,24 @@ class QuestionService implements QuestionServiceContract
                     if ($modelClass == "App\Models\Matter\Matter") {
                          $entity = $modelClass::firstOrCreate(['name' => $value]);
                          $ids[class_basename($modelClass)] = $entity->id;
-                         log::info('=======================================');
-                         log::info('matter' . $entity);
-                         log::info('=======================================');
+                         // log::info('=======================================');
+                         // log::info('matter' . $entity);
+                         // log::info('=======================================');
                     }
 
                     if ($modelClass == "App\Models\Content\Content") {
                          $content = $modelClass::where('name', $value)->first();
 
-                         log::info('content' . $content);
-                         if ($content) {
-                              log::info('=======================================');
-                              if ($content->matter_id) {
-                                   log::info('matter_id' . $content->matter_id);
-                              } else { 
-                                   log::info("não existe matter_id");
-                              }
-                              log::info('=======================================');
-                         }
+                         // log::info('content' . $content);
+                         // if ($content) {
+                         //      log::info('=======================================');
+                         //      if ($content->matter_id) {
+                         //           log::info('matter_id' . $content->matter_id);
+                         //      } else { 
+                         //           log::info("não existe matter_id");
+                         //      }
+                         //      log::info('=======================================');
+                         // }
 
                          // if (!$content == null) {
                          //      $ids[class_basename($modelClass)] = $content->id;
@@ -359,25 +359,6 @@ class QuestionService implements QuestionServiceContract
                     if ($modelClass == "App\Models\Matter\Topic") {
                          $topic = $modelClass::where('name', $value)->first();
 
-                         if ($topic) {
-                              log::info('=======================================');
-                              log::info('topic' . $topic);
-                              if ($topic->content_id) {
-                                   log::info('content_id' . $topic->content_id);
-                              } else {
-                                   log::info('não existe content_id');
-                              }
-                              log::info('=======================================');
-                         }
-
-                         // if (!$topic == null) {
-                         //      $ids[class_basename($modelClass)] = $topic->id;
-                         // } else {
-                         //      $topicForCreate = ['name' => $value, 'content_id' => $ids['Content']];
-                         //      $topicCreated = $modelClass::create($topicForCreate);
-                         //      $ids[class_basename($modelClass)] = $topicCreated->id;
-                         // }
-
                          if (!$topic == null) {
                               if ($topic->content_id === $ids['Content']) {
                                    $ids[class_basename($modelClass)] = $topic->id;
@@ -393,48 +374,32 @@ class QuestionService implements QuestionServiceContract
                          }
                     }
 
-
-
                     if ($modelClass == "App\Models\Matter\Subtopic") {
-                         $subtopic = $modelClass::where('name', $value)->first();
+                         $subtopic = $modelClass::where('name', $value)->get();
 
-                         if ($subtopic) {
-                              log::info('=======================================');
-                              log::info('subtopic' . $subtopic);
-                              if ($subtopic->topic_id) {
-                                   log::info('topic_id' . $subtopic->topic_id);
-                              } else {
-                                   log::info('topic_id');
+                         $verify = null;
+                         if ($subtopic !== null) {
+                              foreach ($subtopic as $value) {
+                                   log::info('$subtopic value : ' . $value->name); 
+                                   log::info('value topic_id : ' . $value->topic_id);
+
+                                   if ($value->topic_id === $ids['Topic']) {
+                                        $verify = [
+                                             'exist' => true,
+                                             'subtopic_id' => $value->id
+                                        ];
+                                   }
                               }
-                              log::info('=======================================');
                          }
 
-                         // if (!$subtopic == null) {
-                         //      $ids[class_basename($modelClass)] = $subtopic->id;
-                         // } else {
-                         //      $subtopicForCreate = ['name' => $value, 'topic_id' => $ids['Topic']];
-                         //      $subtopicCreated = $modelClass::create($subtopicForCreate);
-                         //      $ids[class_basename($modelClass)] = $subtopicCreated->id;
-                         // }
-
-                         if ($subtopic !== null) {
-                              if ($subtopic->topic_id === $ids['Topic']) {
-                                   $ids[class_basename($modelClass)] = $subtopic->id;
-                              } else {
-                                   $subtopicForCreate = ['name' => $value, 'topic_id' => $ids['Topic']];
-                                   $subtopicCreated = $modelClass::create($subtopicForCreate);
-                                   $ids[class_basename($modelClass)] = $subtopicCreated->id;
-                              }
+                         if (isset($verify['exist'])) {
+                              $ids[class_basename($modelClass)] = $verify['subtopic_id'];
                          } else {
                               $subtopicForCreate = ['name' => $value, 'topic_id' => $ids['Topic']];
                               $subtopicCreated = $modelClass::create($subtopicForCreate);
                               $ids[class_basename($modelClass)] = $subtopicCreated->id;
                          }
                     }
-
-                    log::info('=======================================');
-                    log::info($ids);
-                    log::info('=======================================');
                }
           }
           return $ids;
