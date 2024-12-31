@@ -12,19 +12,19 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('matters', function (Blueprint $table) {
-            $table->string('name', 255)->nullable(false)->unique()->change();
+            $table->string('name', 255)->change();
         });
-
+    
         Schema::table('contents', function (Blueprint $table) {
-            $table->string('name', 255)->nullable(false)->unique()->change();
+            $table->string('name', 255)->change();
         });
-
+    
         Schema::table('topics', function (Blueprint $table) {
-            $table->string('name', 255)->nullable(false)->unique()->change();
+            $table->string('name', 255)->change();
         });
-
+    
         Schema::table('subtopics', function (Blueprint $table) {
-            $table->string('name', 255)->nullable(false)->unique()->change();
+            $table->string('name', 255)->change();
         });
     }
 
@@ -34,19 +34,19 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('matters', function (Blueprint $table) {
-            $table->string('name', 80)->nullable(false)->unique()->change();
+            $table->string('name', 80)->change();
         });
-
+    
         Schema::table('contents', function (Blueprint $table) {
-            $table->string('name', 80)->nullable(false)->unique()->change();
+            $table->string('name', 80)->change();
         });
-
+    
         Schema::table('topics', function (Blueprint $table) {
-            $table->string('name', 80)->nullable(false)->unique()->change();
+            $table->string('name', 80)->change();
         });
-
+    
         Schema::table('subtopics', function (Blueprint $table) {
-            $table->string('name', 80)->nullable(false)->unique()->change();
+            $table->string('name', 80)->change();
         });
     }
 };
