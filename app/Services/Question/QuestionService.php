@@ -314,14 +314,24 @@ class QuestionService implements QuestionServiceContract
                     if ($modelClass == "App\Models\Matter\Matter") {
                          $entity = $modelClass::firstOrCreate(['name' => $value]);
                          $ids[class_basename($modelClass)] = $entity->id;
+                         log::info('=======================================');
+                         log::info('matter' . $entity);
+                         log::info('=======================================');
                     }
-
-                    log::info('=======================================');
-                    log::info($ids);
-                    log::info('=======================================');
 
                     if ($modelClass == "App\Models\Content\Content") {
                          $content = $modelClass::where('name', $value)->first();
+
+                         log::info('content' . $content);
+                         if ($content) {
+                              log::info('=======================================');
+                              if ($content->matter_id) {
+                                   log::info('matter_id' . $content->matter_id);
+                              } else { 
+                                   log::info("não existe matter_id");
+                              }
+                              log::info('=======================================');
+                         }
 
                          // if (!$content == null) {
                          //      $ids[class_basename($modelClass)] = $content->id;
@@ -346,12 +356,19 @@ class QuestionService implements QuestionServiceContract
                          }
                     }
 
-                    log::info('=======================================');
-                    log::info($ids);
-                    log::info('=======================================');
-
                     if ($modelClass == "App\Models\Matter\Topic") {
                          $topic = $modelClass::where('name', $value)->first();
+
+                         if ($topic) {
+                              log::info('=======================================');
+                              log::info('topic' . $topic);
+                              if ($topic->content_id) {
+                                   log::info('content_id' . $topic->content_id);
+                              } else {
+                                   log::info('não existe content_id');
+                              }
+                              log::info('=======================================');
+                         }
 
                          // if (!$topic == null) {
                          //      $ids[class_basename($modelClass)] = $topic->id;
@@ -376,13 +393,21 @@ class QuestionService implements QuestionServiceContract
                          }
                     }
 
-                    log::info('=======================================');
-                    log::info("subtopic part");
-                    log::info($ids);
-                    log::info('=======================================');
+
 
                     if ($modelClass == "App\Models\Matter\Subtopic") {
                          $subtopic = $modelClass::where('name', $value)->first();
+
+                         if ($subtopic) {
+                              log::info('=======================================');
+                              log::info('subtopic' . $subtopic);
+                              if ($subtopic->topic_id) {
+                                   log::info('topic_id' . $subtopic->topic_id);
+                              } else {
+                                   log::info('topic_id');
+                              }
+                              log::info('=======================================');
+                         }
 
                          // if (!$subtopic == null) {
                          //      $ids[class_basename($modelClass)] = $subtopic->id;
@@ -392,7 +417,7 @@ class QuestionService implements QuestionServiceContract
                          //      $ids[class_basename($modelClass)] = $subtopicCreated->id;
                          // }
 
-                         if (!$subtopic == null) {
+                         if ($subtopic !== null) {
                               if ($subtopic->topic_id === $ids['Topic']) {
                                    $ids[class_basename($modelClass)] = $subtopic->id;
                               } else {
