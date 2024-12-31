@@ -314,41 +314,25 @@ class QuestionService implements QuestionServiceContract
                     if ($modelClass == "App\Models\Matter\Matter") {
                          $entity = $modelClass::firstOrCreate(['name' => $value]);
                          $ids[class_basename($modelClass)] = $entity->id;
-                         // log::info('=======================================');
-                         // log::info('matter' . $entity);
-                         // log::info('=======================================');
                     }
 
                     if ($modelClass == "App\Models\Content\Content") {
-                         $content = $modelClass::where('name', $value)->first();
+                         $content = $modelClass::where('name', $value)->get();
 
-                         // log::info('content' . $content);
-                         // if ($content) {
-                         //      log::info('=======================================');
-                         //      if ($content->matter_id) {
-                         //           log::info('matter_id' . $content->matter_id);
-                         //      } else { 
-                         //           log::info("não existe matter_id");
-                         //      }
-                         //      log::info('=======================================');
-                         // }
-
-                         // if (!$content == null) {
-                         //      $ids[class_basename($modelClass)] = $content->id;
-                         // } else {
-                         //      $contentForCreate = ['name' => $value, 'matter_id' => $ids['Matter']];
-                         //      $contentCreated = $modelClass::create($contentForCreate);
-                         //      $ids[class_basename($modelClass)] = $contentCreated->id;
-                         // }
-
-                         if (!$content == null) {
-                              if ($content->matter_id === $ids['Matter']) {
-                                   $ids[class_basename($modelClass)] = $content->id;
-                              } else {
-                                   $contentForCreate = ['name' => $value, 'matter_id' => $ids['Matter']];
-                                   $contentCreated = $modelClass::create($contentForCreate);
-                                   $ids[class_basename($modelClass)] = $contentCreated->id;
+                         $verify = null;
+                         if ($content !== null) {
+                              foreach ($content as $value) {
+                                   if ($value->matter_id === $ids['Matter']) {
+                                        $verify = [
+                                             'exist' => true,
+                                             'content_id' => $value->id
+                                        ];
+                                   }
                               }
+                         }
+
+                         if (isset($verify['exist'])) {
+                              $ids[class_basename($modelClass)] = $verify['content_id'];
                          } else {
                               $contentForCreate = ['name' => $value, 'matter_id' => $ids['Matter']];
                               $contentCreated = $modelClass::create($contentForCreate);
@@ -357,16 +341,22 @@ class QuestionService implements QuestionServiceContract
                     }
 
                     if ($modelClass == "App\Models\Matter\Topic") {
-                         $topic = $modelClass::where('name', $value)->first();
+                         $topic = $modelClass::where('name', $value)->get();
 
-                         if (!$topic == null) {
-                              if ($topic->content_id === $ids['Content']) {
-                                   $ids[class_basename($modelClass)] = $topic->id;
-                              } else {
-                                   $topicForCreate = ['name' => $value, 'content_id' => $ids['Content']];
-                                   $topicCreated = $modelClass::create($topicForCreate);
-                                   $ids[class_basename($modelClass)] = $topicCreated->id;
+                         $verify = null;
+                         if ($topic !== null) {
+                              foreach ($topic as $value) {
+                                   if ($value->content_id === $ids['Content']) {
+                                        $verify = [
+                                             'exist' => true,
+                                             'topic_id' => $value->id
+                                        ];
+                                   }
                               }
+                         }
+
+                         if (isset($verify['exist'])) {
+                              $ids[class_basename($modelClass)] = $verify['topic_id'];
                          } else {
                               $topicForCreate = ['name' => $value, 'content_id' => $ids['Content']];
                               $topicCreated = $modelClass::create($topicForCreate);
