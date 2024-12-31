@@ -316,10 +316,29 @@ class QuestionService implements QuestionServiceContract
                          $ids[class_basename($modelClass)] = $entity->id;
                     }
 
+                    log::info('=======================================');
+                    log::info($ids);
+                    log::info('=======================================');
+
                     if ($modelClass == "App\Models\Content\Content") {
-                         $entity = $modelClass::where('name', $value)->first();
-                         if (!$entity == null) {
-                              $ids[class_basename($modelClass)] = $entity->id;
+                         $content = $modelClass::where('name', $value)->first();
+
+                         // if (!$content == null) {
+                         //      $ids[class_basename($modelClass)] = $content->id;
+                         // } else {
+                         //      $contentForCreate = ['name' => $value, 'matter_id' => $ids['Matter']];
+                         //      $contentCreated = $modelClass::create($contentForCreate);
+                         //      $ids[class_basename($modelClass)] = $contentCreated->id;
+                         // }
+
+                         if (!$content == null) {
+                              if ($content->matter_id === $ids['Matter']) {
+                                   $ids[class_basename($modelClass)] = $content->id;
+                              } else {
+                                   $contentForCreate = ['name' => $value, 'matter_id' => $ids['Matter']];
+                                   $contentCreated = $modelClass::create($contentForCreate);
+                                   $ids[class_basename($modelClass)] = $contentCreated->id;
+                              }
                          } else {
                               $contentForCreate = ['name' => $value, 'matter_id' => $ids['Matter']];
                               $contentCreated = $modelClass::create($contentForCreate);
@@ -327,10 +346,29 @@ class QuestionService implements QuestionServiceContract
                          }
                     }
 
+                    log::info('=======================================');
+                    log::info($ids);
+                    log::info('=======================================');
+
                     if ($modelClass == "App\Models\Matter\Topic") {
-                         $entity = $modelClass::where('name', $value)->first();
-                         if (!$entity == null) {
-                              $ids[class_basename($modelClass)] = $entity->id;
+                         $topic = $modelClass::where('name', $value)->first();
+
+                         // if (!$topic == null) {
+                         //      $ids[class_basename($modelClass)] = $topic->id;
+                         // } else {
+                         //      $topicForCreate = ['name' => $value, 'content_id' => $ids['Content']];
+                         //      $topicCreated = $modelClass::create($topicForCreate);
+                         //      $ids[class_basename($modelClass)] = $topicCreated->id;
+                         // }
+
+                         if (!$topic == null) {
+                              if ($topic->content_id === $ids['Content']) {
+                                   $ids[class_basename($modelClass)] = $topic->id;
+                              } else {
+                                   $topicForCreate = ['name' => $value, 'content_id' => $ids['Content']];
+                                   $topicCreated = $modelClass::create($topicForCreate);
+                                   $ids[class_basename($modelClass)] = $topicCreated->id;
+                              }
                          } else {
                               $topicForCreate = ['name' => $value, 'content_id' => $ids['Content']];
                               $topicCreated = $modelClass::create($topicForCreate);
@@ -338,16 +376,40 @@ class QuestionService implements QuestionServiceContract
                          }
                     }
 
+                    log::info('=======================================');
+                    log::info("subtopic part");
+                    log::info($ids);
+                    log::info('=======================================');
+
                     if ($modelClass == "App\Models\Matter\Subtopic") {
-                         $entity = $modelClass::where('name', $value)->first();
-                         if (!$entity == null) {
-                              $ids[class_basename($modelClass)] = $entity->id;
+                         $subtopic = $modelClass::where('name', $value)->first();
+
+                         // if (!$subtopic == null) {
+                         //      $ids[class_basename($modelClass)] = $subtopic->id;
+                         // } else {
+                         //      $subtopicForCreate = ['name' => $value, 'topic_id' => $ids['Topic']];
+                         //      $subtopicCreated = $modelClass::create($subtopicForCreate);
+                         //      $ids[class_basename($modelClass)] = $subtopicCreated->id;
+                         // }
+
+                         if (!$subtopic == null) {
+                              if ($subtopic->topic_id === $ids['Topic']) {
+                                   $ids[class_basename($modelClass)] = $subtopic->id;
+                              } else {
+                                   $subtopicForCreate = ['name' => $value, 'topic_id' => $ids['Topic']];
+                                   $subtopicCreated = $modelClass::create($subtopicForCreate);
+                                   $ids[class_basename($modelClass)] = $subtopicCreated->id;
+                              }
                          } else {
                               $subtopicForCreate = ['name' => $value, 'topic_id' => $ids['Topic']];
                               $subtopicCreated = $modelClass::create($subtopicForCreate);
                               $ids[class_basename($modelClass)] = $subtopicCreated->id;
                          }
                     }
+
+                    log::info('=======================================');
+                    log::info($ids);
+                    log::info('=======================================');
                }
           }
           return $ids;
