@@ -570,6 +570,8 @@ class QuestionService implements QuestionServiceContract
           $newFileName = $this->generateNewNamefile($file, $questionCode);
           $filePath = "{$this->aws_images_question_folder}/{$newFileName}";
 
+          $mimeType = $file->getMimeType();
+
           try {
                $stream = fopen($file->getRealPath(), 'r+');
 
@@ -578,11 +580,15 @@ class QuestionService implements QuestionServiceContract
                          'visibility' => 'public',
                          'ContentType' => 'image/png',
                     ]);
-               }
-               if ($type === 'svg') {
+               } else if ($type === 'svg') {
                     Storage::disk('s3')->put($filePath, $stream, [
                          'visibility' => 'public',
                          'ContentType' => 'image/svg+xml',
+                    ]);
+               } else {
+                    Storage::disk('s3')->put($filePath, $stream, [
+                         'visibility' => 'public',
+                         'ContentType' => $mimeType,
                     ]);
                }
 
